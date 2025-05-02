@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Volunteer | ResQNet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat text-gray-800" style="background-image: url('https://media.istockphoto.com/id/1327617934/photo/aerial-view-of-flooded-houses-with-dirty-water-of-dnister-river-in-halych-town-western-ukraine.jpg?s=612x612&w=0&k=20&c=ffFK1c1lx15S3PlX-tee1py2wkLiKYLad67VvFwTG2I=');">
+
+  <!-- Dark Overlay for Better Contrast -->
+  <div class="bg-black bg-opacity-60 min-h-screen">
+
+    <!-- Hero Section -->
+    <section class="text-white py-24 px-6">
+      <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-5xl font-bold mb-4">Be a Hero When It Matters Most</h1>
+        <p class="text-xl mb-8">Join our volunteer network to make a real difference during disasters.</p>
+        <a href="#signup" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg">Sign Up to Volunteer</a>
+      </div>
+    </section>
+
+    <!-- Why Volunteer -->
+    <section class="py-16">
+      <div class="max-w-6xl mx-auto px-4 text-center text-white">
+        <h2 class="text-3xl font-bold mb-8">Why Volunteer with ResQNet?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="p-6 bg-white/80 rounded-xl shadow text-black">
+            <h3 class="font-semibold text-lg mb-2">Save Lives</h3>
+            <p>Be part of rescue operations during critical emergencies.</p>
+          </div>
+          <div class="p-6 bg-white/80 rounded-xl shadow text-black">
+            <h3 class="font-semibold text-lg mb-2">Distribute Supplies</h3>
+            <p>Deliver food, water, and medicine to those in need.</p>
+          </div>
+          <div class="p-6 bg-white/80 rounded-xl shadow text-black">
+            <h3 class="font-semibold text-lg mb-2">Remote Support</h3>
+            <p>Coordinate help digitally from any location.</p>
+          </div>
+          <div class="p-6 bg-white/80 rounded-xl shadow text-black">
+            <h3 class="font-semibold text-lg mb-2">Rebuild Communities</h3>
+            <p>Help people recover and restart their lives post-disaster.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Volunteer Roles -->
+    <section class="py-16">
+      <div class="max-w-5xl mx-auto px-4 text-center text-white">
+        <h2 class="text-3xl font-bold mb-8">Volunteer Roles</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          <div class="bg-white/80 p-6 rounded-xl shadow text-black">
+            <h3 class="text-xl font-semibold">Field Rescuer</h3>
+            <p class="text-sm mt-2">On-ground search and rescue operations during crises.</p>
+          </div>
+          <div class="bg-white/80 p-6 rounded-xl shadow text-black">
+            <h3 class="text-xl font-semibold">Medical Assistant</h3>
+            <p class="text-sm mt-2">Support first-aid and medical camps as needed.</p>
+          </div>
+          <div class="bg-white/80 p-6 rounded-xl shadow text-black">
+            <h3 class="text-xl font-semibold">Logistics Support</h3>
+            <p class="text-sm mt-2">Manage distribution of resources and transport coordination.</p>
+          </div>
+          <div class="bg-white/80 p-6 rounded-xl shadow text-black">
+            <h3 class="text-xl font-semibold">Digital Responder</h3>
+            <p class="text-sm mt-2">Remotely match requests and provide help via ResQNet tools.</p>
+          </div>
+          <div class="bg-white/80 p-6 rounded-xl shadow text-black">
+            <h3 class="text-xl font-semibold">Outreach & Communication</h3>
+            <p class="text-sm mt-2">Help us spread the word, raise funds, and connect with NGOs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Volunteer Sign-up Form -->
+    <section id="signup" class="py-16">
+      <div class="max-w-3xl mx-auto px-6">
+        <h2 class="text-3xl font-bold mb-6 text-center text-white">Join the Volunteer Force</h2>
+        <form class="space-y-6 bg-white/90 p-6 rounded-xl shadow text-black">
+          <div>
+            <label class="block mb-1 font-semibold">Full Name</label>
+            <input type="text" class="w-full px-4 py-2 rounded border" placeholder="Your Name" required />
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Email</label>
+            <input type="email" class="w-full px-4 py-2 rounded border" placeholder="you@example.com" required />
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Phone</label>
+            <input type="tel" class="w-full px-4 py-2 rounded border" placeholder="+91 XXXXX XXXXX" required />
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Preferred Role</label>
+            <select class="w-full px-4 py-2 rounded border">
+              <option>Field Rescuer</option>
+              <option>Medical Assistant</option>
+              <option>Logistics Support</option>
+              <option>Digital Responder</option>
+              <option>Outreach & Communication</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Location</label>
+            <input type="text" class="w-full px-4 py-2 rounded border" placeholder="City, State" required />
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Availability</label>
+            <input type="text" class="w-full px-4 py-2 rounded border" placeholder="e.g., Weekends only, Full-time" />
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Skills or Background</label>
+            <textarea class="w-full px-4 py-2 rounded border" rows="3" placeholder="Optional"></textarea>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-semibold">Submit Application</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-white">
+      &copy; 2025 ResQNet. All Rights Reserved.
+    </footer>
+
+  </div> <!-- overlay -->
+</body>
+</html>

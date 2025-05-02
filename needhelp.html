@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Help - ResQNet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .form-step {
+      display: none;
+    }
+    .form-step.active {
+      display: block;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .urgent-flash {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { border-color: #ef4444; }
+      50% { border-color: #fca5a5; }
+      100% { border-color: #ef4444; }
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-md py-3">
+    <div class="container mx-auto flex justify-between items-center px-6">
+      <a href="index.html">
+        <img src="https://tse2.mm.bing.net/th/id/OIG3.K2IQhBoa5w2vVXgvWgH_?pid=ImgGn" alt="Logo" class="h-12" />
+      </a>
+      <div class="hidden md:flex space-x-8">
+        <a href="index.html" class="hover:text-yellow-400">Home</a>
+        <a href="request.html" class="text-yellow-400 font-bold">Request Help</a>
+        <a href="volunteer.html" class="hover:text-yellow-400">Volunteer</a>
+        <a href="track.html" class="hover:text-yellow-400">Track Requests</a>
+      </div>
+      <a href="sos.html" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full flex items-center">
+        <i class="fas fa-bell mr-2"></i> Emergency SOS
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <section class="py-16 min-h-screen">
+    <div class="container mx-auto px-6 max-w-3xl">
+      <!-- Progress Steps -->
+      <div class="flex justify-between mb-12 relative">
+        <div class="absolute top-1/2 h-1 bg-gray-700 w-full -z-10"></div>
+        <div id="progress-bar" class="absolute top-1/2 h-1 bg-yellow-500 -z-10" style="width: 25%"></div>
+        
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center text-white font-bold mb-2">1</div>
+          <span class="text-sm">Urgency</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold mb-2">2</div>
+          <span class="text-sm text-gray-400">Details</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold mb-2">3</div>
+          <span class="text-sm text-gray-400">Confirmation</span>
+        </div>
+      </div>
+
+      <!-- Form Steps -->
+      <div class="bg-gray-800 rounded-xl shadow-xl p-8">
+        <!-- Step 1: Urgency Assessment -->
+        <div id="step-1" class="form-step active">
+          <h2 class="text-3xl font-bold mb-6">How urgently do you need help?</h2>
+          <p class="text-gray-300 mb-8">This helps us prioritize responses and connect you with the right resources.</p>
+          
+          <div class="space-y-4">
+            <!-- Emergency Option -->
+            <div class="urgency-option urgent-flash border-2 border-red-500 p-6 rounded-lg cursor-pointer hover:bg-gray-700 transition" data-urgency="emergency">
+              <div class="flex items-start">
+                <div class="bg-red-500 text-white p-2 rounded-full mr-4">
+                  <i class="fas fa-bell"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold mb-2">Immediate Danger (0-1 hour)</h3>
+                  <p class="text-gray-300">You or someone else is in immediate physical danger (trapped, injured, etc.)</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Urgent Option -->
+            <div class="urgency-option border-2 border-transparent p-6 rounded-lg cursor-pointer hover:bg-gray-700 transition" data-urgency="urgent">
+              <div class="flex items-start">
+                <div class="bg-orange-500 text-white p-2 rounded-full mr-4">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold mb-2">Urgent (1-12 hours)</h3>
+                  <p class="text-gray-300">Critical need but not immediate danger (running out of supplies, medical need, etc.)</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Standard Option -->
+            <div class="urgency-option border-2 border-transparent p-6 rounded-lg cursor-pointer hover:bg-gray-700 transition" data-urgency="standard">
+              <div class="flex items-start">
+                <div class="bg-blue-500 text-white p-2 rounded-full mr-4">
+                  <i class="fas fa-info-circle"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold mb-2">Standard (12+ hours)</h3>
+                  <p class="text-gray-300">Need assistance but not time-sensitive (supplies, information, etc.)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Detailed Information -->
+        <div id="step-2" class="form-step">
+          <h2 class="text-3xl font-bold mb-6">Tell us more about your situation</h2>
+          <p class="text-gray-300 mb-8">Please provide details so we can send the right help.</p>
+          
+          <form id="help-form">
+            <!-- Personal Information -->
+            <div class="mb-8">
+              <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Your Information</h3>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label for="full-name" class="block mb-2">Full Name</label>
+                  <input type="text" id="full-name" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                </div>
+                <div>
+                  <label for="phone" class="block mb-2">Phone Number</label>
+                  <input type="tel" id="phone" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Location -->
+            <div class="mb-8">
+              <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Location Details</h3>
+              <div class="mb-4">
+                <label for="address" class="block mb-2">Address or Nearest Landmark</label>
+                <input type="text" id="address" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+              </div>
+              <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label for="city" class="block mb-2">City</label>
+                  <input type="text" id="city" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                </div>
+                <div>
+                  <label for="state" class="block mb-2">State/Region</label>
+                  <input type="text" id="state" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                </div>
+                <div>
+                  <label for="country" class="block mb-2">Country</label>
+                  <select id="country" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                    <option value="">Select Country</option>
+                    <option value="PH">Philippines</option>
+                    <option value="ID">Indonesia</option>
+                    <option value="VN">Vietnam</option>
+                    <option value="TH">Thailand</option>
+                    <option value="MY">Malaysia</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Situation Details -->
+            <div class="mb-8">
+              <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">What do you need?</h3>
+              <div class="mb-4">
+                <label class="block mb-2">Type of Assistance Needed</label>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <label class="flex items-center bg-gray-700 px-4 py-3 rounded-lg cursor-pointer">
+                    <input type="checkbox" name="assistance" value="medical" class="mr-2">
+                    Medical Assistance
+                  </label>
+                  <label class="flex items-center bg-gray-700 px-4 py-3 rounded-lg cursor-pointer">
+                    <input type="checkbox" name="assistance" value="rescue" class="mr-2">
+                    Rescue/Evacuation
+                  </label>
+                  <label class="flex items-center bg-gray-700 px-4 py-3 rounded-lg cursor-pointer">
+                    <input type="checkbox" name="assistance" value="food" class="mr-2">
+                    Food/Water
+                  </label>
+                  <label class="flex items-center bg-gray-700 px-4 py-3 rounded-lg cursor-pointer">
+                    <input type="checkbox" name="assistance" value="shelter" class="mr-2">
+                    Shelter/Housing
+                  </label>
+                  <label class="flex items-center bg-gray-700 px-4 py-3 rounded-lg cursor-pointer">
+                    <input type="checkbox" name="assistance" value="information" class="mr-2">
+                    Information
+                  </label>
+                  <label class="flex items-center bg-gray-700 px-4 py-3 rounded-lg cursor-pointer">
+                    <input type="checkbox" name="assistance" value="other" class="mr-2">
+                    Other
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label for="details" class="block mb-2">Please describe your situation in detail</label>
+                <textarea id="details" rows="4" class="w-full bg-gray-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500" required></textarea>
+              </div>
+            </div>
+            
+            <!-- Special Considerations -->
+            <div class="mb-8">
+              <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Special Considerations</h3>
+              <div class="space-y-3">
+                <label class="flex items-center">
+                  <input type="checkbox" id="vulnerable" class="mr-2">
+                  I/we have vulnerable individuals (children, elderly, disabled, pregnant)
+                </label>
+                <label class="flex items-center">
+                  <input type="checkbox" id="pets" class="mr-2">
+                  There are pets/livestock that need assistance
+                </label>
+                <label class="flex items-center">
+                  <input type="checkbox" id="access" class="mr-2">
+                  Access is difficult (flooded roads, debris, etc.)
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="step-3" class="form-step">
+          <div class="text-center py-12">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i class="fas fa-check text-3xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold mb-4">Request Submitted!</h2>
+            <p class="text-gray-300 mb-8 max-w-lg mx-auto">We've received your request for help. Our team is working to connect you with assistance.</p>
+            
+            <div class="bg-gray-700 rounded-lg p-6 mb-8 text-left">
+              <h3 class="font-bold mb-4">Your Request Summary</h3>
+              <div id="request-summary" class="space-y-3">
+                <!-- Filled by JavaScript -->
+              </div>
+            </div>
+            
+            <p class="text-gray-300 mb-6">
+              <span class="font-bold text-yellow-400">Next Steps:</span> 
+              You'll receive a confirmation SMS with your case number and updates.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+              <a href="track.html" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg">
+                Track Your Request
+              </a>
+              <a href="index.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg">
+                Return Home
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between mt-8 pt-6 border-t border-gray-700">
+          <button id="prev-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg opacity-0 invisible">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+          </button>
+          <button id="next-btn" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-lg ml-auto">
+            Continue <i class="fas fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900/80 py-8 border-t border-gray-800">
+    <div class="container mx-auto px-6 text-center text-gray-400">
+      <p>© 2023 ResQNet International. All rights reserved.</p>
+      <p class="text-sm mt-2 text-gray-500">24/7 Emergency Hotline: +1 (800) RES-QNET</p>
+    </div>
+  </footer>
+
+  <script>
+    // Form Navigation
+    let currentStep = 1;
+    const totalSteps = 3;
+    let urgencyLevel = '';
+    
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', function() {
+      // Urgency selection
+      document.querySelectorAll('.urgency-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.urgency-option').forEach(opt => {
+            opt.classList.remove('border-yellow-500', 'bg-gray-700');
+            opt.classList.add('border-transparent');
+          });
+          this.classList.add('border-yellow-500', 'bg-gray-700');
+          this.classList.remove('border-transparent');
+          urgencyLevel = this.dataset.urgency;
+        });
+      });
+      
+      // Navigation buttons
+      document.getElementById('next-btn').addEventListener('click', nextStep);
+      document.getElementById('prev-btn').addEventListener('click', prevStep);
+    });
+    
+    function nextStep() {
+      // Validate current step before proceeding
+      if (currentStep === 1) {
+        if (!urgencyLevel) {
+          alert('Please select how urgent your need is');
+          return;
+        }
+        
+        // If emergency, redirect to SOS
+        if (urgencyLevel === 'emergency') {
+          window.location.href = 'sos.html';
+          return;
+        }
+      } else if (currentStep === 2) {
+        // Validate form
+        const form = document.getElementById('help-form');
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        
+        // Generate summary
+        generateSummary();
+      }
+      
+      // Proceed to next step
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      currentStep++;
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      updateProgress();
+      updateButtons();
+    }
+    
+    function prevStep() {
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      currentStep--;
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      updateProgress();
+      updateButtons();
+    }
+    
+    function updateProgress() {
+      const progressPercent = (currentStep / totalSteps) * 100;
+      document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+    }
+    
+    function updateButtons() {
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      
+      // Show/hide back button
+      if (currentStep > 1) {
+        prevBtn.classList.remove('opacity-0', 'invisible');
+      } else {
+        prevBtn.classList.add('opacity-0', 'invisible');
+      }
+      
+      // Change next button text on last step
+      if (currentStep === totalSteps) {
+        nextBtn.classList.add('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        nextBtn.textContent = currentStep === totalSteps - 1 ? 'Submit Request' : 'Continue';
+      }
+    }
+    
+    function generateSummary() {
+      const summaryEl = document.getElementById('request-summary');
+      
+      // Get form values
+      const name = document.getElementById('full-name').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const city = document.getElementById('city').value;
+      const state = document.getElementById('state').value;
+      const country = document.getElementById('country').options[document.getElementById('country').selectedIndex].text;
+      const details = document.getElementById('details').value;
+      
+      // Get checked assistance types
+      const assistanceTypes = [];
+      document.querySelectorAll('input[name="assistance"]:checked').forEach(box => {
+        assistanceTypes.push(box.value);
+      });
+      
+      // Generate summary HTML
+      let html = `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Location:</strong> ${address}, ${city}, ${state}, ${country}</p>
+        <p><strong>Urgency:</strong> ${urgencyLevel.charAt(0).toUpperCase() + urgencyLevel.slice(1)}</p>
+        <p><strong>Assistance Needed:</strong> ${assistanceTypes.join(', ')}</p>
+        <p><strong>Details:</strong> ${details}</p>
+      `;
+      
+      // Add special considerations if any
+      const special = [];
+      if (document.getElementById('vulnerable').checked) special.push('Vulnerable individuals');
+      if (document.getElementById('pets').checked) special.push('Pets/livestock');
+      if (document.getElementById('access').checked) special.push('Access difficulties');
+      
+      if (special.length > 0) {
+        html += `<p><strong>Special Considerations:</strong> ${special.join(', ')}</p>`;
+      }
+      
+      summaryEl.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

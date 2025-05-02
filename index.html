@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResQNet — Fastest Disaster Response Network</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .animate-pulse-glow {
+      animation: pulse-glow 2s infinite;
+    }
+    .map-overlay {
+      background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+    }
+    .nav-scroll {
+      background-color: rgba(17, 24, 39, 0.95);
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+      border-radius: 0.75rem;
+    }
+    .map-container {
+      height: 500px;
+      position: relative;
+    }
+    .disaster-marker {
+      background-size: cover;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .disaster-info-window {
+      min-width: 200px;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans scroll-smooth">
+  <!-- Emergency Alert Bar -->
+  <div class="bg-red-800 text-white py-2 px-4 text-center font-bold animate-pulse flex justify-center items-center">
+    <span class="mr-2">🚨</span>
+    <span>ALERT: Hurricane warning in Southeast Asia - </span>
+    <a href="#" class="underline ml-1 font-semibold">See evacuation routes</a>
+  </div>
+
+  <!-- Navigation -->
+  <nav id="main-nav" class="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-md py-3 transition-all duration-300">
+    <div class="container mx-auto flex justify-between items-center px-6">
+      <div class="flex items-center">
+        <img src="https://tse4.mm.bing.net/th?id=OIG2.mwgljdt_9JcpiVAhNx4x&pid=ImgGn" alt="ResQNet Logo" class="h-16 hover:scale-105 transition-transform">
+      </div>
+      <div class="hidden md:flex space-x-8">
+        <a href="NiSwarth.html" class="text-white hover:text-yellow-400 transition-all border-b-2 border-transparent hover:border-yellow-400 pb-1">NiSwarth</a>
+        <a href="request.html" class="text-white hover:text-yellow-400 transition-all border-b-2 border-transparent hover:border-yellow-400 pb-1">Request Help</a>
+        <a href="volunteer.html" class="text-white hover:text-yellow-400 transition-all border-b-2 border-transparent hover:border-yellow-400 pb-1">Volunteer</a>
+        <a href="track.html" class="text-white hover:text-yellow-400 transition-all border-b-2 border-transparent hover:border-yellow-400 pb-1">Track Requests</a>
+        <a href="relief.html" class="text-white hover:text-yellow-400 transition-all border-b-2 border-transparent hover:border-yellow-400 pb-1">Relief Centers</a>
+      </div>
+      <button class="md:hidden text-white text-2xl">☰</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden">
+    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1475776408506-9a5371e7a068?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bmF0dXJhbCUyMGRpc2FzdGVyfGVufDB8fDB8fHww')] bg-cover bg-center opacity-20"></div>
+    
+    <div class="relative z-10 flex flex-col items-center justify-center h-screen text-center px-6">
+      <h1 class="text-6xl md:text-8xl font-bold mb-6 text-white animate__animated animate__fadeInDown">
+        ResQ<span class="text-red-600">Net</span>
+      </h1>
+      <p class="text-2xl md:text-3xl max-w-2xl text-yellow-300 font-semibold mb-10 animate__animated animate__fadeIn animate__delay-1s">
+        When Seconds Matter, <span class="underline decoration-red-500">We Deliver Hope</span>.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-6 animate__animated animate__fadeInUp animate__delay-1s">
+        <a href="needhelp.html" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full shadow-xl transition-all duration-300 hover:scale-110 flex items-center">
+          🚨 I Need Help
+        </a>
+        <a href="wanthelp.html" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-xl transition-all duration-300 hover:scale-110 flex items-center">
+          ✋ I Want to Help
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Crisis Map -->
+  <section class="py-16 bg-gray-800">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-8 text-center">Live Crisis Map</h2>
+      <div class="map-container bg-gray-900 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+        <div id="map"></div>
+      </div>
+      <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="flex items-center">
+          <div class="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
+          <span class="text-sm">Earthquake</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+          <span class="text-sm">Flood</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
+          <span class="text-sm">Wildfire</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-4 h-4 bg-purple-500 rounded-full mr-2"></div>
+          <span class="text-sm">Hurricane</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Counter -->
+  <section class="py-16 bg-gray-900" id="stats-section">
+    <div class="container mx-auto px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="p-6 bg-gray-800 rounded-lg hover:scale-105 transition-transform">
+          <div class="text-5xl font-bold text-yellow-400 mb-2" id="rescues-counter">0</div>
+          <div class="text-white">Lives Saved</div>
+        </div>
+        <div class="p-6 bg-gray-800 rounded-lg hover:scale-105 transition-transform">
+          <div class="text-5xl font-bold text-green-400 mb-2" id="volunteers-counter">0</div>
+          <div class="text-white">Volunteers</div>
+        </div>
+        <div class="p-6 bg-gray-800 rounded-lg hover:scale-105 transition-transform">
+          <div class="text-5xl font-bold text-blue-400 mb-2" id="requests-counter">0</div>
+          <div class="text-white">Active Requests</div>
+        </div>
+        <div class="p-6 bg-gray-800 rounded-lg hover:scale-105 transition-transform">
+          <div class="text-5xl font-bold text-red-400 mb-2" id="countries-counter">0</div>
+          <div class="text-white">Countries</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-16 bg-gray-800">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-12 text-center">How ResQNet Works</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-gray-900 p-6 rounded-xl hover:shadow-xl transition-all hover:-translate-y-2">
+          <div class="text-yellow-400 text-4xl mb-4">1</div>
+          <h3 class="text-xl font-bold mb-3">Emergency Request</h3>
+          <p class="text-gray-300">Submit your request through our app, website, or SMS service with your location and needs.</p>
+        </div>
+        <div class="bg-gray-900 p-6 rounded-xl hover:shadow-xl transition-all hover:-translate-y-2">
+          <div class="text-yellow-400 text-4xl mb-4">2</div>
+          <h3 class="text-xl font-bold mb-3">Instant Dispatch</h3>
+          <p class="text-gray-300">Our AI system matches your request with the nearest available responders and resources.</p>
+        </div>
+        <div class="bg-gray-900 p-6 rounded-xl hover:shadow-xl transition-all hover:-translate-y-2">
+          <div class="text-yellow-400 text-4xl mb-4">3</div>
+          <h3 class="text-xl font-bold mb-3">Real-Time Tracking</h3>
+          <p class="text-gray-300">Follow the responder's progress and receive estimated arrival times.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="py-16 bg-gray-900">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-12 text-center">Saved Lives Stories</h2>
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="bg-gray-800 p-6 rounded-xl border-l-4 border-yellow-500">
+          <p class="text-gray-300 italic mb-4">"During the floods, ResQNet connected me with a boat rescue team within 15 minutes. I wouldn't be here without them."</p>
+          <div class="flex items-center">
+            <div class="w-12 h-12 bg-gray-700 rounded-full mr-4"></div>
+            <div>
+              <h4 class="font-bold">Maria G.</h4>
+              <p class="text-gray-400 text-sm">Philippines Typhoon Response</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-xl border-l-4 border-yellow-500">
+          <p class="text-gray-300 italic mb-4">"As a volunteer doctor, I've been able to reach 3x more patients using ResQNet's coordination system."</p>
+          <div class="flex items-center">
+            <div class="w-12 h-12 bg-gray-700 rounded-full mr-4"></div>
+            <div>
+              <h4 class="font-bold">Dr. Ahmed K.</h4>
+              <p class="text-gray-400 text-sm">Medical Volunteer</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-16 bg-gradient-to-r from-red-900 to-red-700">
+    <div class="container mx-auto px-6 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Make a Difference?</h2>
+      <p class="text-xl text-yellow-100 mb-8 max-w-2xl mx-auto">Join our global network of first responders and volunteers today.</p>
+      <div class="flex flex-col sm:flex-row justify-center gap-6">
+        <a href="volunteer.html" class="bg-white hover:bg-gray-100 text-red-700 font-bold py-4 px-10 rounded-full shadow-xl transition-all duration-300 hover:scale-105">
+          Become a Volunteer
+        </a>
+        <a href="#" class="bg-transparent hover:bg-red-800 border-2 border-white text-white font-bold py-4 px-10 rounded-full shadow-xl transition-all duration-300 hover:scale-105">
+          Donate Now
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 py-12 border-t border-gray-800">
+    <div class="container mx-auto px-6">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <p class="text-gray-400">Global disaster response network saving lives since 2015.</p>
+        </div>
+        <div>
+          <h3 class="text-white font-bold mb-4">Quick Links</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-400 hover:text-yellow-400 transition">Home</a></li>
+            <li><a href="request.html" class="text-gray-400 hover:text-yellow-400 transition">Request Help</a></li>
+            <li><a href="volunteer.html" class="text-gray-400 hover:text-yellow-400 transition">Volunteer</a></li>
+            <li><a href="track.html" class="text-gray-400 hover:text-yellow-400 transition">Track Requests</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-white font-bold mb-4">Resources</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-400 hover:text-yellow-400 transition">Disaster Preparedness</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-yellow-400 transition">Training Programs</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-yellow-400 transition">API for Developers</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-yellow-400 transition">Research Papers</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-white font-bold mb-4">Contact</h3>
+          <ul class="space-y-2">
+            <li class="text-gray-400">24/7 Emergency: +1 (800) RES-QNET</li>
+            <li class="text-gray-400">General: info@resqnet.org</li>
+            <li class="text-gray-400">Press: media@resqnet.org</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500">
+        <p>© 2023 ResQNet International. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating SOS Button -->
+  <a href="sos.html" class="fixed bottom-8 right-8 z-50 bg-red-600 hover:bg-red-700 text-white text-xl font-bold py-4 px-6 rounded-full shadow-2xl flex items-center animate-pulse-glow">
+    🚨 SOS
+    <span class="ml-2 text-sm hidden md:inline">Emergency</span>
+  </a>
+
+  <!-- Scripts -->
+  <script>
+    // Initialize Google Maps
+    function initMap() {
+      // Create a map centered on the world
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 2,
+        center: { lat: 20, lng: 0 },
+        styles: [
+          {
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#242f3e"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#746855"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.text.stroke",
+            "stylers": [
+              {
+                "color": "#242f3e"
+              }
+            ]
+          }
+        ]
+      });
+
+      // Sample disaster data (in a real app, this would come from an API)
+      const disasters = [
+        {
+          location: { lat: 14.5995, lng: 120.9842 }, // Manila
+          type: "hurricane",
+          title: "Typhoon Mawar",
+          severity: "High",
+          date: "2023-05-28",
+          description: "Category 4 typhoon with winds up to 150 mph. Over 2 million people affected.",
+          affected: "2.1M",
+          icon: "🌪️"
+        },
+        {
+          location: { lat: 36.7783, lng: -119.4179 }, // California
+          type: "wildfire",
+          title: "Sierra Wildfire",
+          severity: "Extreme",
+          date: "2023-05-25",
+          description: "Fast-moving wildfire has burned 50,000 acres. Evacuations underway.",
+          affected: "15K",
+          icon: "🔥"
+        },
+        {
+          location: { lat: 38.3228, lng: 38.8150 }, // Turkey
+          type: "earthquake",
+          title: "Aftermath: 7.8 Quake",
+          severity: "Critical",
+          date: "2023-02-06",
+          description: "Ongoing relief efforts after devastating earthquake. Still finding survivors.",
+          affected: "1.5M",
+          icon: "🌍"
+        },
+        {
+          location: { lat: 22.3193, lng: 114.1694 }, // Hong Kong
+          type: "flood",
+          title: "Record Flooding",
+          severity: "Medium",
+          date: "2023-05-30",
+          description: "Heavy monsoon rains causing widespread flooding in urban areas.",
+          affected: "500K",
+          icon: "🌊"
+        },
+        {
+          location: { lat: -6.1754, lng: 106.8272 }, // Jakarta
+          type: "flood",
+          title: "Monsoon Floods",
+          severity: "High",
+          date: "2023-05-29",
+          description: "Seasonal flooding has displaced thousands in the capital region.",
+          affected: "300K",
+          icon: "🌊"
+        }
+      ];
+
+      // Define colors for disaster types
+      const disasterColors = {
+        earthquake: "#f87171", // red-400
+        flood: "#60a5fa",     // blue-400
+        wildfire: "#fbbf24",  // amber-400
+        hurricane: "#a78bfa"  // violet-400
+      };
+
+      // Add markers for each disaster
+      disasters.forEach(disaster => {
+        const marker = new google.maps.Marker({
+          position: disaster.location,
+          map: map,
+          title: disaster.title,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: disasterColors[disaster.type] || "#000000",
+            fillOpacity: 0.8,
+            strokeWeight: 0,
+            scale: 10
+          },
+          animation: google.maps.Animation.DROP
+        });
+
+        // Create info window content
+        const contentString = `
+          <div class="disaster-info-window">
+            <h3 class="font-bold text-lg mb-1">${disaster.icon} ${disaster.title}</h3>
+            <div class="flex items-center mb-1">
+              <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: ${disasterColors[disaster.type] || "#000000"}"></span>
+              <span class="text-sm capitalize">${disaster.type}</span>
+              <span class="mx-2">•</span>
+              <span class="text-sm">${disaster.severity} severity</span>
+            </div>
+            <p class="text-sm mb-2">${disaster.description}</p>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <div class="font-semibold">Affected</div>
+                <div>${disaster.affected} people</div>
+              </div>
+              <div>
+                <div class="font-semibold">Reported</div>
+                <div>${disaster.date}</div>
+              </div>
+            </div>
+            <div class="mt-2">
+              <a href="#" class="text-blue-500 hover:underline text-sm">View relief efforts →</a>
+            </div>
+          </div>
+        `;
+
+        const infowindow = new google.maps.InfoWindow({
+          content: contentString
+        });
+
+        // Add click event to show info window
+        marker.addListener("click", () => {
+          infowindow.open(map, marker);
+        });
+      });
+    }
+
+    // Animated counters
+    function animateCounter(elementId, target) {
+      let current = 0;
+      const increment = target / 100;
+      const element = document.getElementById(elementId);
+      
+      const timer = setInterval(() => {
+        current += increment;
+        element.textContent = Math.floor(current);
+        
+        if (current >= target) {
+          element.textContent = target;
+          clearInterval(timer);
+        }
+      }, 20);
+    }
+
+    // Initialize counters when scrolled into view
+    function initCounters() {
+      const countersSection = document.querySelector('#stats-section');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateCounter('rescues-counter', 12457);
+            animateCounter('volunteers-counter', 8321);
+            animateCounter('requests-counter', 563);
+            animateCounter('countries-counter', 48);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      if (countersSection) {
+        observer.observe(countersSection);
+      }
+    }
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('main-nav');
+      if (window.scrollY > 50) {
+        nav.classList.add('nav-scroll');
+      } else {
+        nav.classList.remove('nav-scroll');
+      }
+    });
+
+    // Initialize when page loads
+    window.addEventListener('load', () => {
+      initCounters();
+    });
+  </script>
+  
+  <!-- Load Google Maps API -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAh-So50-NyUyhyKKpp1zW28Q4I_eQ4drM&callback=initMap&libraries=places,geometry"></script>
+</body>
+</html>

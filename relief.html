@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relief Centers - ResQNet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Load Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAh-So50-NyUyhyKKpp1zW28Q4I_eQ4drM&callback=initMap&libraries=places,geometry" async defer></script>
+  <style>
+    #map {
+      height: 500px;
+      width: 100%;
+      border-radius: 0.75rem;
+    }
+    .facility-icon {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+    }
+    .map-overlay {
+      background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+    }
+    .custom-marker {
+      background-color: #4299e1;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+    }
+    .distance-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: #3B82F6;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-md py-3">
+    <div class="container mx-auto flex justify-between items-center px-6">
+      <div class="flex items-center">
+        <img src="https://tse2.mm.bing.net/th/id/OIG3.K2IQhBoa5w2vVXgvWgH_?pid=ImgGn" alt="ResQNet Logo" class="h-12">
+      </div>
+      <div class="hidden md:flex space-x-8">
+        <a href="index.html" class="text-white hover:text-yellow-400 transition">Home</a>
+        <a href="request.html" class="text-white hover:text-yellow-400 transition">Request Help</a>
+        <a href="volunteer.html" class="text-white hover:text-yellow-400 transition">Volunteer</a>
+        <a href="track.html" class="text-white hover:text-yellow-400 transition">Track Requests</a>
+      </div>
+      <a href="sos.html" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition flex items-center">
+        <i class="fas fa-bell mr-2"></i> Emergency SOS
+      </a>
+    </div>
+  </nav>
+
+  <!-- Relief Centers Header -->
+  <section class="py-16 bg-gradient-to-r from-blue-900 to-blue-700">
+    <div class="container mx-auto px-6 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">Relief Centers Map</h1>
+      <p class="text-xl text-blue-100 max-w-2xl mx-auto">Find nearby shelters, food distribution points, and medical assistance</p>
+      <div class="mt-6 flex flex-wrap justify-center gap-4">
+        <button id="find-nearest-medical" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition flex items-center">
+          <i class="fas fa-hospital mr-2"></i> Nearest Medical
+        </button>
+        <button id="find-nearest-food" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full transition flex items-center">
+          <i class="fas fa-utensils mr-2"></i> Nearest Food
+        </button>
+        <button id="find-nearest-shelter" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition flex items-center">
+          <i class="fas fa-home mr-2"></i> Nearest Shelter
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="py-12">
+    <div class="container mx-auto px-6">
+      <!-- Search and Filter Bar -->
+      <div class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+        <div class="grid md:grid-cols-4 gap-4">
+          <div class="md:col-span-3">
+            <div class="relative">
+              <input id="search-input" type="text" placeholder="Search by location or address..." 
+                     class="w-full bg-gray-700 text-white px-4 py-3 rounded-lg pl-12 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+            </div>
+          </div>
+          <div>
+            <select id="filter-type" class="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all">All Types</option>
+              <option value="shelter">Shelters</option>
+              <option value="food">Food Distribution</option>
+              <option value="medical">Medical Centers</option>
+              <option value="aid">Aid Stations</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map and Side Panel -->
+      <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Map Container -->
+        <div class="lg:col-span-2">
+          <div id="map" class="shadow-xl"></div>
+          
+          <!-- Map Legend -->
+          <div class="bg-gray-800 p-4 rounded-lg mt-4">
+            <h3 class="font-bold mb-2">Map Legend</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div class="flex items-center">
+                <div class="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
+                <span class="text-sm">Medical Centers</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+                <span class="text-sm">Shelters</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
+                <span class="text-sm">Food Distribution</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                <span class="text-sm">Aid Stations</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-4 h-4 bg-green-300 rounded-full mr-2"></div>
+                <span class="text-sm">Your Location</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Relief Centers List -->
+        <div class="bg-gray-800 rounded-xl shadow-lg p-6 overflow-y-auto" style="max-height: 600px;">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Nearby Relief Centers</h2>
+            <button id="sort-distance" class="text-blue-400 hover:text-blue-300 text-sm flex items-center">
+              <i class="fas fa-sort-amount-down mr-1"></i> Sort by Distance
+            </button>
+          </div>
+          <div id="centers-list" class="space-y-4">
+            <!-- Centers will be loaded here dynamically -->
+            <div class="text-center py-8">
+              <i class="fas fa-spinner fa-spin text-2xl text-blue-400"></i>
+              <p class="mt-2 text-gray-400">Loading relief centers...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Relief Center Information -->
+      <div class="bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
+        <h2 class="text-2xl font-bold mb-6">About Relief Centers</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-semibold mb-3 text-blue-400"><i class="fas fa-info-circle mr-2"></i> What to Expect</h3>
+            <ul class="space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-check text-green-400 mt-1 mr-2"></i>
+                <span>Safe shelter from disasters</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check text-green-400 mt-1 mr-2"></i>
+                <span>Basic medical care and first aid</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check text-green-400 mt-1 mr-2"></i>
+                <span>Food and clean drinking water</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check text-green-400 mt-1 mr-2"></i>
+                <span>Information about disaster recovery</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-3 text-yellow-400"><i class="fas fa-exclamation-triangle mr-2"></i> Important Notes</h3>
+            <ul class="space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-yellow-400 mt-1 mr-2"></i>
+                <span>Bring identification if possible</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-yellow-400 mt-1 mr-2"></i>
+                <span>Medications and special needs items</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-yellow-400 mt-1 mr-2"></i>
+                <span>Space may be limited during peak times</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-yellow-400 mt-1 mr-2"></i>
+                <span>Pets may not be allowed at all locations</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-gray-900/80 py-8 border-t border-gray-800">
+    <div class="container mx-auto px-6">
+      <div class="text-center">
+        <p class="text-gray-400">© 2023 ResQNet International. All rights reserved.</p>
+        <p class="text-gray-500 text-sm mt-2">Relief center data is updated every 15 minutes from official sources.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Enhanced relief center data with more locations
+    const reliefCenters = [
+      {
+        id: 1,
+        name: "Manila Central Medical Center",
+        type: "medical",
+        address: "123 Health Ave, Manila",
+        capacity: 150,
+        available: 45,
+        phone: "+63 2 123 4567",
+        services: ["emergency", "surgery", "pharmacy", "pediatrics"],
+        coordinates: { lat: 14.5995, lng: 120.9842 },
+        description: "24/7 emergency medical center with full facilities"
+      },
+      {
+        id: 2,
+        name: "Bangkok Food Distribution Hub",
+        type: "food",
+        address: "456 Nourishment Rd, Bangkok",
+        capacity: 500,
+        available: 500,
+        phone: "+66 2 987 6543",
+        services: ["food", "water", "hygiene kits", "baby formula"],
+        coordinates: { lat: 13.7563, lng: 100.5018 },
+        description: "Daily meal distribution from 7AM to 7PM"
+      },
+      {
+        id: 3,
+        name: "Jakarta Emergency Shelter",
+        type: "shelter",
+        address: "789 Safety St, Jakarta",
+        capacity: 300,
+        available: 120,
+        phone: "+62 21 456 7890",
+        services: ["beds", "showers", "laundry", "counseling"],
+        coordinates: { lat: -6.2088, lng: 106.8456 },
+        description: "Safe shelter with family accommodations"
+      },
+      {
+        id: 4,
+        name: "Ho Chi Minh Aid Station",
+        type: "aid",
+        address: "101 Relief Blvd, Ho Chi Minh",
+        capacity: 200,
+        available: 200,
+        phone: "+84 28 123 4567",
+        services: ["supplies", "information", "family reunification"],
+        coordinates: { lat: 10.8231, lng: 106.6297 },
+        description: "Distribution center for emergency supplies"
+      },
+      {
+        id: 5,
+        name: "Kuala Lumpur Medical Outpost",
+        type: "medical",
+        address: "202 Care Lane, Kuala Lumpur",
+        capacity: 80,
+        available: 25,
+        phone: "+60 3 1234 5678",
+        services: ["first aid", "vaccinations", "basic care"],
+        coordinates: { lat: 3.1390, lng: 101.6869 },
+        description: "Basic medical care and first aid station"
+      },
+      {
+        id: 6,
+        name: "Singapore Central Shelter",
+        type: "shelter",
+        address: "303 Haven Road, Singapore",
+        capacity: 400,
+        available: 180,
+        phone: "+65 6123 4567",
+        services: ["beds", "meals", "childcare", "elderly care"],
+        coordinates: { lat: 1.3521, lng: 103.8198 },
+        description: "Large capacity shelter with special needs services"
+      },
+      {
+        id: 7,
+        name: "Hanoi Food Bank",
+        type: "food",
+        address: "404 Nourish Street, Hanoi",
+        capacity: 350,
+        available: 350,
+        phone: "+84 24 123 4567",
+        services: ["food", "water", "cooking facilities"],
+        coordinates: { lat: 21.0278, lng: 105.8342 },
+        description: "Food distribution with cooking facilities"
+      },
+      {
+        id: 8,
+        name: "Yangon Emergency Clinic",
+        type: "medical",
+        address: "505 Recovery Road, Yangon",
+        capacity: 90,
+        available: 30,
+        phone: "+95 1 123 4567",
+        services: ["trauma", "emergency", "pharmacy"],
+        coordinates: { lat: 16.8409, lng: 96.1735 },
+        description: "Emergency medical services and trauma care"
+      }
+    ];
+
+    let map;
+    let markers = [];
+    let infoWindow;
+    let userLocation = null;
+    let userMarker = null;
+    let sortedByDistance = false;
+
+    function initMap() {
+      // Create initial map centered on Southeast Asia
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 10.0, lng: 115.0 },
+        zoom: 5,
+        styles: [
+          {
+            featureType: "poi",
+            stylers: [{ visibility: "off" }]
+          }
+        ]
+      });
+
+      infoWindow = new google.maps.InfoWindow();
+
+      // Add markers for each relief center
+      createMarkers();
+
+      // Initialize the centers list
+      updateCentersList(reliefCenters);
+
+      // Add search box functionality
+      const searchBox = new google.maps.places.SearchBox(
+        document.getElementById("search-input")
+      );
+
+      map.addListener("bounds_changed", () => {
+        searchBox.setBounds(map.getBounds());
+      });
+
+      searchBox.addListener("places_changed", () => {
+        const places = searchBox.getPlaces();
+        if (places.length === 0) return;
+
+        // Move map to the selected location
+        const bounds = new google.maps.LatLngBounds();
+        places.forEach(place => {
+          if (!place.geometry) return;
+          bounds.extend(place.geometry.location);
+        });
+        map.fitBounds(bounds);
+      });
+
+      // Filter functionality
+      document.getElementById("filter-type").addEventListener("change", function() {
+        const filterValue = this.value;
+        filterCenters(filterValue);
+      });
+
+      // Find nearest buttons
+      document.getElementById("find-nearest-medical").addEventListener("click", () => findNearest("medical"));
+      document.getElementById("find-nearest-food").addEventListener("click", () => findNearest("food"));
+      document.getElementById("find-nearest-shelter").addEventListener("click", () => findNearest("shelter"));
+      
+      // Sort by distance button
+      document.getElementById("sort-distance").addEventListener("click", toggleSortByDistance);
+
+      // Try to get user's current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+
+            // Add user location marker
+            userMarker = new google.maps.Marker({
+              position: userLocation,
+              map: map,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: "#00FF00",
+                fillOpacity: 1,
+                strokeColor: "white",
+                strokeWeight: 2,
+                scale: 8
+              },
+              title: "Your Location"
+            });
+
+            // Center map on user location
+            map.setCenter(userLocation);
+            map.setZoom(12);
+            
+            // Calculate distances for all centers
+            calculateDistances();
+          },
+          () => {
+            console.log("Geolocation permission denied");
+          }
+        );
+      }
+    }
+
+    function createMarkers() {
+      markers = []; // Clear existing markers
+      
+      reliefCenters.forEach(center => {
+        const markerColor = getMarkerColor(center.type);
+        
+        const marker = new google.maps.Marker({
+          position: center.coordinates,
+          map: map,
+          title: center.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: markerColor,
+            fillOpacity: 1,
+            strokeColor: "white",
+            strokeWeight: 2,
+            scale: 10
+          },
+          centerData: center
+        });
+
+        markers.push(marker);
+
+        // Add click event to show info window
+        marker.addListener("click", () => {
+          showCenterInfo(marker.centerData, marker);
+        });
+      });
+    }
+
+    function calculateDistances() {
+      if (!userLocation) return;
+      
+      reliefCenters.forEach(center => {
+        const centerLocation = new google.maps.LatLng(center.coordinates.lat, center.coordinates.lng);
+        const userLoc = new google.maps.LatLng(userLocation.lat, userLocation.lng);
+        
+        // Calculate distance in meters
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(userLoc, centerLocation);
+        center.distance = distance;
+        center.distanceText = distance < 1000 ? 
+          `${Math.round(distance)} meters` : 
+          `${(distance / 1000).toFixed(1)} km`;
+      });
+      
+      if (sortedByDistance) {
+        sortCentersByDistance();
+      }
+    }
+
+    function sortCentersByDistance() {
+      if (!userLocation) {
+        alert("Please enable location services to sort by distance");
+        return;
+      }
+      
+      reliefCenters.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+      updateCentersList(reliefCenters);
+    }
+
+    function toggleSortByDistance() {
+      sortedByDistance = !sortedByDistance;
+      const sortButton = document.getElementById("sort-distance");
+      
+      if (sortedByDistance) {
+        sortButton.innerHTML = '<i class="fas fa-sort-amount-down mr-1"></i> Sorted by Distance';
+        sortCentersByDistance();
+      } else {
+        sortButton.innerHTML = '<i class="fas fa-sort-amount-down mr-1"></i> Sort by Distance';
+        updateCentersList(reliefCenters);
+      }
+    }
+
+    function findNearest(type) {
+      if (!userLocation) {
+        alert("Please enable location services to find nearest centers");
+        return;
+      }
+      
+      // Filter centers by type
+      const filteredCenters = reliefCenters.filter(center => center.type === type);
+      
+      if (filteredCenters.length === 0) {
+        alert(`No ${type} centers found in the area`);
+        return;
+      }
+      
+      // Sort by distance
+      filteredCenters.sort((a, b) => a.distance - b.distance);
+      const nearestCenter = filteredCenters[0];
+      
+      // Find the marker for this center
+      const marker = markers.find(m => m.centerData.id === nearestCenter.id);
+      if (marker) {
+        // Pan to the nearest center
+        map.panTo(marker.getPosition());
+        map.setZoom(15);
+        
+        // Show info window
+        showCenterInfo(nearestCenter, marker);
+        
+        // Highlight the nearest center in the list
+        highlightCenterInList(nearestCenter.id);
+        
+        // Flash the marker
+        flashMarker(marker);
+      }
+    }
+
+    function highlightCenterInList(centerId) {
+      const centerElements = document.querySelectorAll('#centers-list > div');
+      centerElements.forEach(el => {
+        if (el.dataset.centerId == centerId) {
+          el.classList.add('ring-2', 'ring-yellow-400');
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          el.classList.remove('ring-2', 'ring-yellow-400');
+        }
+      });
+    }
+
+    function flashMarker(marker, count = 0) {
+      if (count >= 6) {
+        marker.setAnimation(null);
+        return;
+      }
+      
+      // Toggle animation
+      marker.setAnimation(count % 2 === 0 ? google.maps.Animation.BOUNCE : null);
+      
+      // Continue flashing
+      setTimeout(() => flashMarker(marker, count + 1), 300);
+    }
+
+    function getMarkerColor(type) {
+      switch(type) {
+        case "medical": return "#EF4444"; // red
+        case "shelter": return "#3B82F6"; // blue
+        case "food": return "#F59E0B"; // yellow
+        case "aid": return "#10B981"; // green
+        default: return "#6B7280"; // gray
+      }
+    }
+
+    function showCenterInfo(center, marker) {
+      const content = `
+        <div class="text-gray-800">
+          <h3 class="font-bold text-lg">${center.name}</h3>
+          <p class="text-sm mb-2">${center.address}</p>
+          <div class="flex items-center mb-2">
+            <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${getMarkerColor(center.type)}"></span>
+            <span class="text-sm capitalize">${center.type}</span>
+            ${center.distance ? `<span class="ml-4 text-sm text-gray-600"><i class="fas fa-map-marker-alt mr-1"></i> ${center.distanceText}</span>` : ''}
+          </div>
+          <p class="text-sm mb-2">${center.description}</p>
+          <p class="text-sm"><i class="fas fa-phone-alt mr-2"></i> ${center.phone}</p>
+          <div class="mt-3">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${center.coordinates.lat},${center.coordinates.lng}" 
+               target="_blank" class="text-blue-600 hover:underline text-sm">
+              <i class="fas fa-directions mr-1"></i> Get Directions
+            </a>
+          </div>
+        </div>
+      `;
+
+      infoWindow.setContent(content);
+      infoWindow.open(map, marker);
+    }
+
+    function updateCentersList(centers) {
+      const listContainer = document.getElementById("centers-list");
+      listContainer.innerHTML = "";
+
+      if (centers.length === 0) {
+        listContainer.innerHTML = `
+          <div class="text-center py-8">
+            <i class="fas fa-exclamation-circle text-2xl text-yellow-400"></i>
+            <p class="mt-2 text-gray-400">No relief centers found matching your criteria</p>
+          </div>
+        `;
+        return;
+      }
+
+      centers.forEach(center => {
+        const markerColor = getMarkerColor(center.type);
+        const availablePercentage = Math.round((center.available / center.capacity) * 100);
+        
+        const centerElement = document.createElement("div");
+        centerElement.className = "bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition cursor-pointer relative";
+        centerElement.dataset.centerId = center.id;
+        centerElement.innerHTML = `
+          <div class="flex justify-between items-start">
+            <h3 class="font-bold">${center.name}</h3>
+            <span class="text-xs px-2 py-1 rounded" style="background-color: ${markerColor}">${center.type}</span>
+          </div>
+          <p class="text-gray-400 text-sm mt-1">${center.address}</p>
+          
+          ${center.distance ? `<div class="absolute top-2 right-2 bg-gray-800 text-xs px-2 py-1 rounded">${center.distanceText}</div>` : ''}
+          
+          <div class="flex items-center mt-3">
+            <div class="w-full bg-gray-600 rounded-full h-2.5 mr-2">
+              <div class="bg-blue-500 h-2.5 rounded-full" style="width: ${availablePercentage}%"></div>
+            </div>
+            <span class="text-xs text-gray-300">${center.available}/${center.capacity}</span>
+          </div>
+          
+          <div class="flex flex-wrap gap-1 mt-3">
+            ${center.services.map(service => 
+              `<span class="text-xs bg-gray-600 px-2 py-1 rounded">${service}</span>`
+            ).join("")}
+          </div>
+        `;
+
+        centerElement.addEventListener("click", () => {
+          // Find the marker for this center
+          const marker = markers.find(m => m.centerData.id === center.id);
+          if (marker) {
+            map.panTo(marker.getPosition());
+            map.setZoom(15);
+            showCenterInfo(center, marker);
+          }
+        });
+
+        listContainer.appendChild(centerElement);
+      });
+    }
+
+    function filterCenters(filterValue) {
+      if (filterValue === "all") {
+        // Show all markers and centers
+        markers.forEach(marker => marker.setVisible(true));
+        updateCentersList(reliefCenters);
+        return;
+      }
+
+      // Filter markers and centers
+      const filteredCenters = reliefCenters.filter(center => center.type === filterValue);
+      
+      markers.forEach(marker => {
+        marker.setVisible(marker.centerData.type === filterValue);
+      });
+
+      updateCentersList(filteredCenters);
+    }
+
+    // Initialize the map when window loads
+    window.initMap = initMap;
+  </script>
+</body>
+</html>
